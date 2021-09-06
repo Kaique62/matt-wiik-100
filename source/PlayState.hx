@@ -555,33 +555,22 @@ class PlayState extends MusicBeatState
 				}
 
 			default:
-				defaultCamZoom = 0.9;
+				defaultCamZoom = 0.4;
 				curStage = 'stage';
-				var bg:BGSprite = new BGSprite('stageback', -600, -200, 0.9, 0.9);
+				var bgSky:BGSprite = new BGSprite('skyBACKGROUND', -1000, -450, 1, 1);
+				add(bgSky);
+
+				var bg:BGSprite = new BGSprite('buildingBACKGROUND', -1000, -450, 1, 1);
 				add(bg);
 
-				var stageFront:BGSprite = new BGSprite('stagefront', -650, 600, 0.9, 0.9);
-				stageFront.setGraphicSize(Std.int(stageFront.width * 1.1));
-				stageFront.updateHitbox();
-				add(stageFront);
+				var buildingFront:BGSprite = new BGSprite('buildingFOREGROUND', -650, 550, 0.9, 0.9);
+				buildingFront.setGraphicSize(Std.int(buildingFront.width * 1.1));
+				buildingFront.updateHitbox();
+				add(buildingFront);
 
-				if(!ClientPrefs.lowQuality) {
-					var stageLight:BGSprite = new BGSprite('stage_light', -125, -100, 0.9, 0.9);
-					stageLight.setGraphicSize(Std.int(stageLight.width * 1.1));
-					stageLight.updateHitbox();
-					add(stageLight);
-					var stageLight:BGSprite = new BGSprite('stage_light', 1225, -100, 0.9, 0.9);
-					stageLight.setGraphicSize(Std.int(stageLight.width * 1.1));
-					stageLight.updateHitbox();
-					stageLight.flipX = true;
-					add(stageLight);
-
-					var stageCurtains:BGSprite = new BGSprite('stagecurtains', -500, -300, 1.3, 1.3);
-					stageCurtains.setGraphicSize(Std.int(stageCurtains.width * 0.9));
-					stageCurtains.updateHitbox();
-					add(stageCurtains);
+			 
 				}
-		}
+		
 
 		backgroundGroup = new FlxTypedGroup<FlxSprite>();
 		add(backgroundGroup);
@@ -609,6 +598,12 @@ class PlayState extends MusicBeatState
 		// REPOSITIONING PER STAGE
 		switch (curStage)
 		{
+
+				case 'stage':
+			 
+				BF_X += 300;
+				GF_X += 150;
+
 			case 'limo':
 				BF_Y -= 220;
 				BF_X += 260;
@@ -923,6 +918,12 @@ class PlayState extends MusicBeatState
 				case 'senpai' | 'roses' | 'thorns':
 					if(daSong == 'roses') FlxG.sound.play(Paths.sound('ANGRY'));
 					schoolIntro(doof);
+				case 'edgy':
+				    dialogueIntro(dialogue, 'intermission');
+				case 'mat':
+					dialogueIntro(dialogue, 'intermission');
+				case 'banger':
+					dialogueIntro(dialogue, 'intermission');
 
 				default:
 					startCountdown();

@@ -44,6 +44,12 @@ class DialogueBoxPsych extends FlxSpriteGroup
 				char.animation.addByPrefix('talk', 'bftalkloop', 24, true); //During dialogue
 				char.flipX = !char.flipX;
 
+			case 'matt':
+					char.frames = Paths.getSparrowAtlas('dialogue/BF_Dialogue');
+					char.animation.addByPrefix('talkIdle', 'MattTalk', 24, true); //Dialogue ended
+					char.animation.addByPrefix('talk', 'matttalkloop', 24, true); //During dialogue
+					char.y -= 140;
+
 			case 'psychic':
 				char.frames = Paths.getSparrowAtlas('dialogue/Psy_Dialogue'); //oppa gangnam style xddddd kill me
 				char.animation.addByPrefix('talkIdle', 'PSYtalk', 24, true);
