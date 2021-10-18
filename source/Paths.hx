@@ -122,7 +122,7 @@ class Paths
 
 	inline static public function image(key:String, ?library:String):Dynamic
 	{
-		#if MODS_ALLOWED
+		#if windows
 		var imageToReturn:FlxGraphic = addCustomGraphic(key);
 		if(imageToReturn != null) return imageToReturn;
 		#end
@@ -131,7 +131,7 @@ class Paths
 	
 	static public function getTextFromFile(key:String, ?ignoreMods:Bool = false):String
 	{
-		#if sys
+		#if windows
 		if (!ignoreMods && FileSystem.exists(mods(key)))
 			return File.getContent(mods(key));
 
@@ -166,7 +166,7 @@ class Paths
 			return true;
 		}
 
-		#if MODS_ALLOWED
+		#if windows
 		if(FileSystem.exists(mods(key))) {
 			return true;
 		}
@@ -176,7 +176,7 @@ class Paths
 
 	inline static public function getSparrowAtlas(key:String, ?library:String)
 	{
-		#if MODS_ALLOWED
+		#if windows
 		var imageLoaded:FlxGraphic = addCustomGraphic(key);
 		var xmlExists:Bool = false;
 		if(FileSystem.exists(modsXml(key))) {
@@ -191,7 +191,7 @@ class Paths
 
 	inline static public function getPackerAtlas(key:String, ?library:String)
 	{
-		#if MODS_ALLOWED
+		#if windows
 		var imageLoaded:FlxGraphic = addCustomGraphic(key);
 		var txtExists:Bool = false;
 		if(FileSystem.exists(modsTxt(key))) {

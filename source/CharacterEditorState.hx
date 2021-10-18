@@ -31,6 +31,8 @@ import haxe.Json;
 import Character;
 import flixel.system.debug.interaction.tools.Pointer.GraphicCursorCross;
 import lime.system.Clipboard;
+import ui.FlxVirtualPad;
+import flixel.system.FlxSound;
 
 #if MODS_ALLOWED
 import sys.FileSystem;
@@ -59,6 +61,8 @@ class CharacterEditorState extends MusicBeatState
 		this.daAnim = daAnim;
 	}
 
+	var _pad:ui.FlxVirtualPad;
+
 	var UI_box:FlxUITabMenu;
 	var UI_characterbox:FlxUITabMenu;
 
@@ -75,7 +79,7 @@ class CharacterEditorState extends MusicBeatState
 
 	override function create()
 	{
-		FlxG.sound.music.stop();
+		//chartMusic = new FlxSound().loadEmbedded(Paths.music('breakfast'));
 
 		camEditor = new FlxCamera();
 		camHUD = new FlxCamera();
@@ -138,14 +142,9 @@ class CharacterEditorState extends MusicBeatState
 		add(camFollow);
 
 		var tipText:FlxText = new FlxText(FlxG.width - 20, FlxG.height - 5, 0,
-			"ESC - Go back to the Game
-			\nE/Q - Camera Zoom In/Out
-			\nJKLI - Move Camera
-			
-			\nW/S - Previous/Next Animation
-			\nSpace - Play Animation
-			\nArrow Keys - Move Character Offset
-			\nHold Shift to Move 10x faster\n", 15);
+			"BACK - Go back to the Game
+			\nLEFT/RIGHT - Previous/Next Animation
+			\nUP - Play Animation", 15);
 		tipText.cameras = [camHUD];
 		tipText.scrollFactor.set();
 		tipText.color = FlxColor.RED;
@@ -192,6 +191,10 @@ class CharacterEditorState extends MusicBeatState
 
 		FlxG.mouse.visible = true;
 		reloadCharacterOptions();
+
+		_pad = new FlxVirtualPad(FULL, NONE);
+    	_pad.alpha = 0.75;
+    	this.add(_pad);
 
 		super.create();
 	}
@@ -376,6 +379,7 @@ class CharacterEditorState extends MusicBeatState
 		tab_group.name = "Character";
 
 		imageInputText = new FlxUIInputText(15, 30, 200, 'characters/BOYFRIEND', 8);
+		imageInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 		var reloadImage:FlxButton = new FlxButton(imageInputText.x + 210, imageInputText.y - 3, "Reload Image", function()
 		{
 			char.imageFile = imageInputText.text;
@@ -386,6 +390,7 @@ class CharacterEditorState extends MusicBeatState
 		});
 
 		healthIconInputText = new FlxUIInputText(15, imageInputText.y + 35, 75, leHealthIcon.getCharacter(), 8);
+		healthIconInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
 		singDurationStepper = new FlxUINumericStepper(15, healthIconInputText.y + 45, 0.1, 4, 0, 999, 1);
 
@@ -465,8 +470,11 @@ class CharacterEditorState extends MusicBeatState
 		}
 
 		animationInputText = new FlxUIInputText(15, 85, 80, '', 8);
+		animationInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 		animationNameInputText = new FlxUIInputText(animationInputText.x, animationInputText.y + 35, 150, '', 8);
+		animationNameInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 		animationIndicesInputText = new FlxUIInputText(animationNameInputText.x, animationNameInputText.y + 40, 250, '', 8);
+		animationIndicesInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 		animationNameFramerate = new FlxUINumericStepper(animationInputText.x + 170, animationInputText.y, 1, 24, 0, 240, 0);
 		animationLoopCheckBox = new FlxUICheckBox(animationNameInputText.x + 170, animationNameInputText.y - 1, null, null, "Should it Loop?", 100);
 
@@ -792,7 +800,7 @@ class CharacterEditorState extends MusicBeatState
 	function reloadCharacterDropDown() {
 		var charsLoaded:Map<String, Bool> = new Map();
 
-		#if MODS_ALLOWED
+		#if windows
 		characterList = [];
 		var directories:Array<String> = [Paths.mods('characters/'), Paths.getPreloadPath('characters/')];
 		for (i in 0...directories.length) {
@@ -863,7 +871,13 @@ class CharacterEditorState extends MusicBeatState
 		FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
 
 		if(!charDropDown.dropPanel.visible) {
-			if (FlxG.keys.justPressed.ESCAPE) {
+			#if android
+			var androidback = FlxG.android.justReleased.BACK;
+			#else
+			var androidback = false;
+			#end
+
+			if (FlxG.keys.justPressed.ENTER || androidback) {
 				MusicBeatState.switchState(new PlayState());
 				FlxG.mouse.visible = false;
 				return;
@@ -904,12 +918,12 @@ class CharacterEditorState extends MusicBeatState
 			}
 
 			if(char.animationsArray.length > 0) {
-				if (FlxG.keys.justPressed.W)
+				if (FlxG.keys.justPressed.A || _pad.buttonLeft.justPressed)
 				{
 					curAnim -= 1;
 				}
 
-				if (FlxG.keys.justPressed.S)
+				if (FlxG.keys.justPressed.D || _pad.buttonRight.justPressed)
 				{
 					curAnim += 1;
 				}
@@ -920,13 +934,13 @@ class CharacterEditorState extends MusicBeatState
 				if (curAnim >= char.animationsArray.length)
 					curAnim = 0;
 
-				if (FlxG.keys.justPressed.S || FlxG.keys.justPressed.W || FlxG.keys.justPressed.SPACE)
+				if (FlxG.keys.justPressed.A || FlxG.keys.justPressed.D || FlxG.keys.justPressed.UP || _pad.buttonLeft.justPressed || _pad.buttonRight.justPressed || _pad.buttonUp.justPressed)
 				{
 					char.playAnim(char.animationsArray[curAnim].anim, true);
 					genBoyOffsets();
 				}
 
-				var controlArray:Array<Bool> = [FlxG.keys.justPressed.LEFT, FlxG.keys.justPressed.RIGHT, FlxG.keys.justPressed.UP, FlxG.keys.justPressed.DOWN];
+				var controlArray:Array<Bool> = [controls.UI_LEFT, controls.UI_RIGHT, controls.UI_UP, controls.UI_DOWN];
 				for (i in 0...controlArray.length) {
 					if(controlArray[i]) {
 						var holdShift = FlxG.keys.pressed.SHIFT;
@@ -953,54 +967,7 @@ class CharacterEditorState extends MusicBeatState
 	}
 
 	var _file:FileReference;
-	/*private function saveOffsets()
-	{
-		var data:String = '';
-		for (anim => offsets in char.animOffsets) {
-			data += anim + ' ' + offsets[0] + ' ' + offsets[1] + '\n';
-		}
 
-		if (data.length > 0)
-		{
-			_file = new FileReference();
-			_file.addEventListener(Event.COMPLETE, onSaveComplete);
-			_file.addEventListener(Event.CANCEL, onSaveCancel);
-			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-			_file.save(data, daAnim + "Offsets.txt");
-		}
-	}*/
-
-	function onSaveComplete(_):Void
-	{
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		FlxG.log.notice("Successfully saved file.");
-	}
-
-	/**
-		* Called when the save file dialog is cancelled.
-		*/
-	function onSaveCancel(_):Void
-	{
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-	}
-
-	/**
-		* Called if there is an error while saving the gameplay recording.
-		*/
-	function onSaveError(_):Void
-	{
-		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
-		_file.removeEventListener(Event.CANCEL, onSaveCancel);
-		_file.removeEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-		_file = null;
-		FlxG.log.error("Problem saving file");
-	}
 
 	function saveCharacter() {
 		var json = {
@@ -1020,14 +987,8 @@ class CharacterEditorState extends MusicBeatState
 
 		var data:String = Json.stringify(json, "\t");
 
-		if (data.length > 0)
-		{
-			_file = new FileReference();
-			_file.addEventListener(Event.COMPLETE, onSaveComplete);
-			_file.addEventListener(Event.CANCEL, onSaveCancel);
-			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-			_file.save(data, daAnim + ".json");
-		}
+		openfl.system.System.setClipboard(data);
+
 	}
 
 	function ClipboardAdd(prefix:String = ''):String {

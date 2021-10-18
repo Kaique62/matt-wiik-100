@@ -44,6 +44,8 @@ import openfl.filters.ShaderFilter;
 import openfl.media.Video;
 import Achievements;
 import openfl.utils.Assets as OpenFlAssets;
+import ui.Mobilecontrols;
+
 
 using StringTools;
 
@@ -213,6 +215,12 @@ class PlayState extends MusicBeatState
 	#end
 
 	var luaArray:Array<FunkinLua> = [];
+
+
+	#if mobileC
+	var mcontrols:Mobilecontrols; 
+	#end
+
 
 	//Achievement shit
 	var keysPressed:Array<Bool> = [false, false, false, false];
@@ -830,6 +838,29 @@ class PlayState extends MusicBeatState
 		timeTxt.cameras = [camHUD];
 		doof.cameras = [camHUD];
 
+		#if mobileC
+			mcontrols = new Mobilecontrols();
+			switch (mcontrols.mode)
+			{
+				case VIRTUALPAD_RIGHT | VIRTUALPAD_LEFT | VIRTUALPAD_CUSTOM:
+					controls.setVirtualPad(mcontrols._virtualPad, FULL, NONE);
+				case HITBOX:
+					controls.setHitBox(mcontrols._hitbox);
+				default:
+			}
+			trackedinputs = controls.trackedinputs;
+			controls.trackedinputs = [];
+
+			var camcontrol = new FlxCamera();
+			FlxG.cameras.add(camcontrol);
+			camcontrol.bgColor.alpha = 0;
+			mcontrols.cameras = [camcontrol];
+
+			mcontrols.visible = false;
+
+			add(mcontrols);
+		#end
+
 		// if (SONG.song == 'South')
 		// FlxG.camera.alpha = 0.7;
 		// UI_camera.zoom = 1;
@@ -838,7 +869,7 @@ class PlayState extends MusicBeatState
 		startingSong = true;
 		updateTime = true;
 
-		#if MODS_ALLOWED
+		#if windows
 		var doPush:Bool = false;
 		var luaFile:String = 'data/' + PlayState.SONG.song.toLowerCase() + '/script.lua';
 		if(sys.FileSystem.exists(Paths.mods(luaFile))) {
@@ -1100,6 +1131,10 @@ class PlayState extends MusicBeatState
 
 	public function startCountdown():Void
 	{
+		#if mobileC
+		mcontrols.visible = true;
+		#end
+
 		if(startedCountdown) {
 			return;
 		}
@@ -1325,7 +1360,7 @@ class PlayState extends MusicBeatState
 
 		var songName:String = SONG.song.toLowerCase();
 		var file:String = Paths.json(songName + '/events');
-		#if sys
+		#if windows
 		if (sys.FileSystem.exists(file)) {
 		#else
 		if (OpenFlAssets.exists(file)) {
@@ -2643,6 +2678,7 @@ class PlayState extends MusicBeatState
 		var finishCallback:Void->Void = endSong; //In case you want to change it in a specific song.
 
 		updateTime = false;
+		mcontrols.visible = false;
 		FlxG.sound.music.volume = 0;
 		vocals.volume = 0;
 		vocals.pause();
@@ -2659,6 +2695,8 @@ class PlayState extends MusicBeatState
 	var transitioning = false;
 	function endSong():Void
 	{
+
+
 		timeBarBG.visible = false;
 		timeBar.visible = false;
 		timeTxt.visible = false;
@@ -2983,20 +3021,20 @@ class PlayState extends MusicBeatState
 	private function keyShit():Void
 	{
 		// HOLDING
-		var up = controls.NOTE_UP;
-		var right = controls.NOTE_RIGHT;
-		var down = controls.NOTE_DOWN;
-		var left = controls.NOTE_LEFT;
+		var up = controls.UI_UP;
+		var right = controls.UI_RIGHT;
+		var down = controls.UI_DOWN;
+		var left = controls.UI_LEFT;
 
-		var upP = controls.NOTE_UP_P;
-		var rightP = controls.NOTE_RIGHT_P;
-		var downP = controls.NOTE_DOWN_P;
-		var leftP = controls.NOTE_LEFT_P;
+		var upP = controls.UI_UP_P;
+		var rightP = controls.UI_RIGHT_P;
+		var downP = controls.UI_DOWN_P;
+		var leftP = controls.UI_LEFT_P;
 
-		var upR = controls.NOTE_UP_R;
-		var rightR = controls.NOTE_RIGHT_R;
-		var downR = controls.NOTE_DOWN_R;
-		var leftR = controls.NOTE_LEFT_R;
+		var upR = controls.UI_UP_R;
+		var rightR = controls.UI_RIGHT_R;
+		var downR = controls.UI_DOWN_R;
+		var leftR = controls.UI_LEFT_R;
 
 		var controlArray:Array<Bool> = [leftP, downP, upP, rightP];
 		var controlReleaseArray:Array<Bool> = [leftR, downR, upR, rightR];
